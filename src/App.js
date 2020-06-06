@@ -1,27 +1,20 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
+import {BrowserRouter as Router, Route} from 'react-router-dom';
 import Todos from './components/Todos';
 import AddTodo from './components/AddTodo';
 import Header from './components/layout/Header';
-import {v4 as uuid} from 'uuid';
+import About from './components/pages/About'
+// import {v4 as uuid} from 'uuid';
+import axios from 'axios';
 
 import './App.css';
 
 function App() {
-  const [todos, setTodos] = useState([
-    {
-      id: uuid(),
-      title: 'Take out the trash',
-      completed: true
-    }, {
-      id: uuid(),
-      title: 'Dinner with wife',
-      completed: false
-    }, {
-      id: uuid(),
-      title: 'Meeting with Boss',
-      completed: false
-    }
-  ]);
+  const [todos, setTodos] = useState([]);
+
+  useEffect(() => {
+    axios.get("https://jsonplaceholder.typicode.com/todos?_limit=10").then(res => setTodos(res.data))
+  }, []);
 
   const markComplete = (id) => {
     setTodos(todos.map((todo) => {
@@ -37,23 +30,26 @@ function App() {
   }
 
   const addTodo = (title) => {
-    const newTodo = {
-      id: uuid(),
+    axios.post("https://jsonplaceholder.typicode.com/todos", {
       title: title,
       completed: false
-    }
-    setTodos([
-      newTodo, ...todos
-    ]);
+    }).then(res => setTodos([
+      res.data, ...todos
+    ]));
   }
 
-  return (<div className="App">
-    <div className='container'>
-      <Header/>
-      <AddTodo addTodo={addTodo}/>
-      <Todos todos={todos} markComplete={markComplete} deletItem={deletItem}/>
+  return (<Router>
+    <div className="App">
+      <div className='container'>
+        <Header/>
+        <Route exact={true} path="/" render={props => (<React.Fragment>
+            <AddTodo addTodo={addTodo}/>
+            <Todos todos={todos} markComplete={markComplete} deletItem={deletItem}/>
+          </React.Fragment>)}/>
+        <Route path="/about" component={About}/>
+      </div>
     </div>
-  </div>);
+  </Router>);
 }
 
 export default App;
